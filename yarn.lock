@@ -377,6 +377,10 @@ path-to-regexp@0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
 
+phaser@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/phaser/-/phaser-2.6.2.tgz#eb39121725a2149c49f46b5d144318c22bc09249"
+
 proxy-addr@~1.1.4:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-1.1.5.tgz#71c0ee3b102de3f202f3b64f608d173fcba1a918"
