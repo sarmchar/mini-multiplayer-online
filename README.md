@@ -1,3 +1,5 @@
-# multiplayer game
+# Mini Multiplayer Online
 
-A simple multiplayer game using phaser and sockets
+My first try making a video game :)
+
+A simple multiplayer game made using phaser and sockets

@@ -3,7 +3,7 @@
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
-const io = require('socket.io').listen(server);
+const socketio = require('socket.io')
 const chalk = require('chalk');
 const pkg = require('./package.json');
 
@@ -27,45 +27,68 @@ server.listen(8081, function(){
 
 
 server.lastPlayerID = 0;
+server.rooms = [];
+let io  = socketio.listen(server);
 
-io.on('connection', function(socket){
-    socket.on('newplayer', function(){ //generate a new player on new connection
-        socket.player = {
-            id: server.lastPlayerID++,
-            x: randomInt(0, 750),
-            y: 0
-        };
-        socket.emit('allplayers', getAllPlayers()); //emit player list to new player
-        socket.emit('user', socket.player.id);
+io.on('connect', function(socket){
+    console.log('connection');
 
-
-        socket.broadcast.emit('newplayer', socket.player); //emit new player to all players
-
-        socket.on('go_left', function(){
-          io.emit('move_left', socket.player.id);
-        });
-        socket.on('go_right', function(){
-          io.emit('move_right', socket.player.id);
-        });
-        socket.on('go_stop', function(){
-          io.emit('move_stop', socket.player.id);
-        });
-        socket.on('go_up', function(){
-          io.emit('move_up', socket.player.id);
-        });
-        socket.on('go_down', function(){
-          io.emit('move_down', socket.player.id);
-        });
-
-          socket.on('disconnect', function(){
-          io.emit('remove', socket.player.id);
-          });
+    socket.on('room', function(room) {
+        console.log(chalk.cyan('room', room));
+        server.rooms.push(room);
+        socket.join(room);
       });
 
-    socket.on('dispatch_star', function(x, bounce){
-      io.emit('render_star', x, bounce);
-    })
+
+
+    // socket.on('newplayer', function(){ //generate a new player on new connection
+    //   console.log(chalk.cyan('A client has connected :)'));
+
+    //     let x = 200 * server.lastPlayerID;
+    //     socket.player = {
+    //         id: server.lastPlayerID++,
+    //         x: x,
+    //         y: 300,
+    //         score: 0
+    //     };
+    //     socket.emit('allplayers', getAllPlayers()); //emit player list to new player
+    //     socket.emit('user', socket.player.id, socket.player.score);
+
+    //     socket.on('dispatch_star', function(x, bounce){
+    //       io.emit('render_star', x, bounce);
+    //     });
+
+
+    //     socket.broadcast.emit('newplayer', socket.player); //emit new player to all players
+
+    //     socket.on('go_left', function(){
+    //       io.emit('move_left', socket.player.id);
+    //     });
+    //     socket.on('go_right', function(){
+    //       io.emit('move_right', socket.player.id);
+    //     });
+    //     socket.on('go_stop', function(){
+    //       io.emit('move_stop', socket.player.id);
+    //     });
+    //     socket.on('go_up', function(){
+    //       io.emit('move_up', socket.player.id);
+    //     });
+    //     socket.on('go_down', function(){
+    //       io.emit('move_down', socket.player.id);
+    //     });
+
+    //       socket.on('disconnect', function(){
+    //       io.emit('remove', socket.player.id);
+    //       console.log(chalk.cyan('a client has disconnected :('));
+    //       });
+    //   });
+
+
 });
+
+let room = '1';
+    io.to(room).emit('message', 'what is going on, party people?');
+
 
 
 function getAllPlayers(){ //get all player objects from open sockets
