@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --watch js --watch server.js server.js",
     "first-deploy": "git commit --allow-empy -m 'Deploying' && git push heroku deploy:master",
-    "deploy": "git pull heroku master && git commit --allow-empy -m 'Deploying' && git push heroku deploy:master"
+    "deploy": "git pull heroku master && git commit --allow-empty -m 'Deploying' && git push heroku deploy:master"
   },
   "author": "Sarah Charles",
   "license": "ISC",
