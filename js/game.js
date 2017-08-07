@@ -11,7 +11,7 @@ var playerId; //that player's id
 var stars; //star group
 var buttonText; //button text
 var starLoop; // looping star callback
-var time = 6;
+var time = 60;
 var timer;
 var winnerMsg;
 var spectate = false; //is spectator?
