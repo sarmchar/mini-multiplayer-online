@@ -6,6 +6,7 @@ const server = require('http').Server(app);
 const socketio = require('socket.io');
 const chalk = require('chalk');
 const pkg = require('./package.json');
+const PORT = process.env.PORT || 8081;
 
 if (process.env.NODE_ENV !== 'production') {
   // Logging middleware (non-production only)
@@ -20,9 +21,9 @@ app.get('/', function(req, res, next){
   res.sendFile(__dirname + '/index.html');
 });
 
-server.listen(8081, function(){
+server.listen(PORT, function(){
   console.log(chalk.magenta(`--- Started HTTP Server for ${pkg.name} ---`));
-  console.log(chalk.cyan('Listening on port 8081!'));
+  console.log(chalk.cyan('Listening on port', PORT));
 });
 
 server.gameState = 'ready';
