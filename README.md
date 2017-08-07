@@ -2,8 +2,8 @@
 
 A simple multiplayer game made using Phaser and Socket.io.
 
-Stackathon project at Grace Hopper Academy by Sarah Charles
+Stackathon project by Sarah Charles at Grace Hopper Academy
 
-Deployed at: TODO
+Deployed at: https://starbots-mmo.herokuapp.com/
 
 Game assets from https://github.com/photonstorm/phaser-examples/
