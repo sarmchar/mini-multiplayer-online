@@ -11,7 +11,7 @@ var playerId; //that player's id
 var stars; //star group
 var buttonText; //button text
 var starLoop; // looping star callback
-var time = 60;
+var time = 6;
 var timer;
 var winnerMsg;
 var spectate = false; //is spectator?
@@ -74,7 +74,8 @@ Game.create = function(){
   //unpause the game
   game.input.onDown.add(unpause, self);
   function unpause(event){
-    if (game.paused) game.paused = false;
+    // if (game.paused) game.paused = false;
+    if (game.paused) toggleGame();
   }
 };
 
@@ -86,7 +87,7 @@ Game.update = function(){
   game.physics.arcade.collide(stars, platforms);
   if (gameState === 'play') game.physics.arcade.overlap(players, stars, collectStar, null, this);
 
-  if (player) {
+  if (player && (gameState === 'play' || gameState === 'end')) {
     player.body.velocity.x = 0;
     if (cursors.left.isDown){ Client.goLeft(); }
     else if (cursors.right.isDown) Client.goRight();
@@ -139,13 +140,13 @@ Game.removePlayer = function(id){
 // Movement handlers
 Game.moveLeft = function(id){
   let p = Game.playerMap[id];
-  p.body.velocity.x = -300;
+  p.body.velocity.x = -400;
   p.scale.x = 1;
   p.animations.play('run', 10, true);
 };
 Game.moveRight = function(id){
   let p = Game.playerMap[id];
-  p.body.velocity.x = 300;
+  p.body.velocity.x = 400;
   p.scale.x = -1;
   p.animations.play('run', 10, true);
 };
@@ -157,7 +158,7 @@ Game.stop = function(id){
 }
 Game.moveUp = function(id){
   let p = Game.playerMap[id];
-  p.body.velocity.y = -250;
+  p.body.velocity.y = -300;
 };
 Game.moveDown = function(id){
   let p = Game.playerMap[id];
@@ -169,7 +170,7 @@ Game.renderStar = function(id, x, bounce) {
   var star = stars.create(x, 0, 'star');
   star.id = id;
   game.physics.enable(star, Phaser.Physics.ARCADE);
-  star.body.gravity.y = 100;
+  star.body.gravity.y = 500;
   star.body.bounce.y = bounce;
   star.body.collideWorldBounds = true;
   Game.starMap[id] = star;
@@ -186,19 +187,20 @@ Game.removeStar = function(starId, id){
 Game.toggleGame = function(state){
     gameState = state;
     if (state === 'play') {
+      game.paused = false;
       for (id in Game.playerMap){ //give each character physics properties
-      let playr = Game.playerMap[id];
-      game.physics.arcade.enable(playr);
-      playr.body.bounce.y = 0.2;
-      playr.body.gravity.y = 300;
-      playr.body.collideWorldBounds = true;
-      playr.animations.add('run');
-    }
-    starLoop = game.time.events.loop(Phaser.Timer.SECOND, createStar, this);
-    buttonText.text = 'Pause';
+        let playr = Game.playerMap[id];
+        game.physics.arcade.enable(playr);
+        playr.body.bounce.y = 0.2;
+        playr.body.gravity.y = 500;
+        playr.body.collideWorldBounds = true;
+        playr.animations.add('run');
+      }
+      starLoop = game.time.events.loop(Phaser.Timer.SECOND, createStar, this);
+      buttonText.text = 'Pause';
     }
     if (state === 'pause'){
-      // game.time.events.remove(starLoop);
+      game.time.events.remove(starLoop);
       buttonText.text = 'Play';
       game.paused = true;
     }
@@ -240,13 +242,16 @@ Game.spectate = function(){
 };
 
 function createStar(){
-  time--;
-  timer.text = 'Time: ' + time;
   if (time === 0){
     Client.endGame(scores());
+  } else {
+    time--;
+    timer.text = 'Time: ' + time;
+
+    Client.dispatchStar();
+    Client.dispatchStar();
   }
-  Client.dispatchStar();
-  Client.dispatchStar();
+
 }
 function collectStar(player, star){
  Client.collectStar(star.id, playerId);
@@ -267,16 +272,6 @@ function scores(){
   return winner;
 }
 
-
-// function playerCollision(p1, p2){
-//   let xdiff = p2.position.x - p1.position.x;
-//   let ydiff = p2.position.y - p1.position.y;
-//   console.log(Math.floor(xdiff), Math.floor(ydiff));
-
-//   p1.body.velocity.x = xdiff*10;
-//   p1.body.velocity.y = ydiff > 0 ? ydiff : 0;
-
-// }
 
 
 

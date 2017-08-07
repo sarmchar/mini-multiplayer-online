@@ -27,6 +27,7 @@ server.listen(PORT, function(){
 });
 
 server.gameState = 'ready';
+server.userID = 0;
 server.lastPlayerID = 0; // all player IDs
 server.starId = 0;
 server.playerList = 0; //number of current players
@@ -51,12 +52,13 @@ io.on('connect', function(socket){
             x: x,
             y: 300,
             score: 0,
-            number: number
+            number: number,
+            // userID: server.userID++
           };
           io.emit('newplayer', socket.player);
           socket.emit('user', socket.player.id, socket.player.score);
         } else { //add new spectator
-           socket.emit('spectator');
+           // socket.emit('spectator', serverID++);
         }
 
         socket.on('toggle_game', function(){
@@ -72,6 +74,7 @@ io.on('connect', function(socket){
             io.emit('toggle_game', server.gameState);
           } else if (server.gameState === 'end'){
             server.gameState = 'ready';
+            io.emit('toggle_game', server.gameState);
             io.emit('reset');
           }
         });
@@ -115,9 +118,6 @@ io.on('connect', function(socket){
 
 
 
-// function calculateWinner(){
-//   let
-// }
 function getAllPlayers(){ //get all player objects from open sockets
     var players = [];
     Object.keys(io.sockets.connected).forEach(function(socketID){
@@ -131,6 +131,7 @@ function randomInt (low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
 function randomBounce(){
-  return 0.7 + Math.random() * 0.2;
+  // return 0.7 + Math.random() * 0.2;
+  return 1.0; //exteme bounce
 }
 
