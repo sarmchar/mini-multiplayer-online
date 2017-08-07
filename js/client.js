@@ -30,7 +30,10 @@ Client.dispatchStar = function(){
 };
 Client.collectStar = function(star, id){
   Client.socket.emit('collect_star', star, id);
-}
+};
+Client.endGame = function(scores){
+  Client.socket.emit('end_game', scores);
+};
 
 
 /* Exec function on reception from socket */
@@ -47,10 +50,22 @@ Client.socket.on('newplayer', function(player){
 Client.socket.on('user', function(id, score){
   Game.getPlayerId(id, score);
 });
-// Togle game state
+// Toggle game state between different states: ready, play, pause , end
 Client.socket.on('toggle_game', function(state){
   Game.toggleGame(state);
 });
+// Display winner at end of game
+Client.socket.on('winner', function(winner){
+  Game.winner(winner);
+});
+// reset game
+Client.socket.on('reset', function(){
+  Game.reset();
+});
+Client.socket.on('spectator', function(){
+  Game.spectate();
+});
+
 
 //Stars
 Client.socket.on('render_star', function(id, x, bounce){
@@ -62,7 +77,6 @@ Client.socket.on('remove_star', function(star, id){
 
 // add players
 Client.socket.on('allplayers', function(playerList){
-  console.log('Player List:', playerList);
   for(let i = 0; i < playerList.length; i++){
     let player = playerList[i];
     Game.addNewPlayer(player.id, player.x, player.y);

@@ -69,8 +69,10 @@ io.on('connect', function(socket){
           else if (server.gameState === 'pause'){
             server.gameState = 'play';
             io.emit('toggle_game', server.gameState);
+          } else if (server.gameState === 'end'){
+            server.gameState = 'ready';
+            io.emit('reset');
           }
-
         });
 
         socket.on('dispatch_star', function(){
@@ -96,7 +98,12 @@ io.on('connect', function(socket){
           io.emit('move_down', socket.player.id);
         });
 
-          socket.on('disconnect', function(){
+        socket.on('end_game', function(winner){
+          io.emit('winner', winner);
+          server.gameState = 'end';
+        });
+
+        socket.on('disconnect', function(){
           io.emit('remove', socket.player.id);
           console.log(chalk.cyan('a client has disconnected :('));
           });
@@ -107,7 +114,9 @@ io.on('connect', function(socket){
 
 
 
-
+// function calculateWinner(){
+//   let
+// }
 function getAllPlayers(){ //get all player objects from open sockets
     var players = [];
     Object.keys(io.sockets.connected).forEach(function(socketID){

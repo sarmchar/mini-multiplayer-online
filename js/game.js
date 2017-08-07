@@ -5,13 +5,16 @@ var Game = {};
 var gameState; //ready, play, pause
 var players; //player groups
 var platforms; //platform group
-var cursors;
+var cursors; //controls
 var player; //the player for this specific socket
 var playerId; //that player's id
 var stars; //star group
-var button; //button
 var buttonText; //button text
-var starLoop;
+var starLoop; // looping star callback
+var time = 60;
+var timer;
+var winnerMsg;
+var spectate = false; //is spectator?
 
 Game.preload = function() {
   game.stage.disableVisibilityChange = true;
@@ -46,9 +49,10 @@ Game.create = function(){
 
   //create score
   scoreText = game.add.text(1010, 0,  'Score:', {fontSize: '20px', fill: '#FFF '});
+  timer = game.add.text(1010, 500,  'Time: ' + time, {fontSize: '20px', fill: '#FFF '});
 
   //create button
-  button = game.add.button(1010, 570, 'button', toggleGame, this);
+  game.add.button(1010, 570, 'button', toggleGame, this);
   game.add.sprite(1010, 570, 'star');
   buttonText = game.add.text(1035, 570, 'Start!', {fontSize: '20px', fill: '#FFF'});
 
@@ -80,9 +84,9 @@ Game.update = function(){
 
   //, playerCollision, null, this)
   game.physics.arcade.collide(stars, platforms);
-  game.physics.arcade.overlap(players, stars, collectStar, null, this);
+  if (gameState === 'play') game.physics.arcade.overlap(players, stars, collectStar, null, this);
 
-  if (player && gameState === 'play') {
+  if (player) {
     player.body.velocity.x = 0;
     if (cursors.left.isDown){ Client.goLeft(); }
     else if (cursors.right.isDown) Client.goRight();
@@ -102,7 +106,6 @@ Game.gameState = function(state){
 Game.getPlayerId = function(id, score){
   player = Game.playerMap[Number(id)];
   playerId = id;
-  console.log('get player by id', id);
 };
 Game.addNewPlayer = function(id, x, y){
     let newPlayer;
@@ -116,7 +119,7 @@ Game.addNewPlayer = function(id, x, y){
     }
     if ( id % 4 === 2){ //Player 3
       newPlayer = players.create(x, y, 'purplebot');
-      Game.playerScore[id] =  game.add.text(1010, 150,  '0', {fontSize: '20px', fill: '#6f00ff '});
+      Game.playerScore[id] =  game.add.text(1010, 150,  '0', {fontSize: '20px', fill: '#6f00ff'});
     }
     if ( id % 4 === 3) { //Player 4
       newPlayer = players.create(x, y, 'greenbot');
@@ -176,32 +179,73 @@ Game.removeStar = function(starId, id){
   delete Game.starMap[starId];
   let newScore = Number(Game.playerScore[id].text) + 10;
   Game.playerScore[id].text = ''  + newScore;
+
 };
 
 //Start game
 Game.toggleGame = function(state){
-  gameState = state;
-  if (state === 'play') {
-    for (id in Game.playerMap){ //give each character physics properties
-    let playr = Game.playerMap[id];
-    game.physics.arcade.enable(playr);
-    playr.body.bounce.y = 0.2;
-    playr.body.gravity.y = 300;
-    playr.body.collideWorldBounds = true;
-    playr.animations.add('run');
-  }
-  starLoop = game.time.events.loop(Phaser.Timer.SECOND, createStar, this);
-  buttonText.text = 'Pause';
-  }
-  if (state === 'pause'){
-    game.time.events.remove(starLoop);
-    buttonText.text = 'Play';
-    game.paused = true;
-  }
+    gameState = state;
+    if (state === 'play') {
+      for (id in Game.playerMap){ //give each character physics properties
+      let playr = Game.playerMap[id];
+      game.physics.arcade.enable(playr);
+      playr.body.bounce.y = 0.2;
+      playr.body.gravity.y = 300;
+      playr.body.collideWorldBounds = true;
+      playr.animations.add('run');
+    }
+    starLoop = game.time.events.loop(Phaser.Timer.SECOND, createStar, this);
+    buttonText.text = 'Pause';
+    }
+    if (state === 'pause'){
+      // game.time.events.remove(starLoop);
+      buttonText.text = 'Play';
+      game.paused = true;
+    }
 
 };
 
+Game.winner = function(id){
+    gameState = 'end';
+    game.time.events.remove(starLoop);
+    let winner = id % 4 + 1;
+    let color = '';
+    if (winner === 1) color = '#F00';
+    if (winner === 2) color = '#FF0';
+    if (winner === 3) color = '#6f00ff';
+    if (winner === 4) color = '#0F0';
+    winnerMsg = game.add.text(400, 300,  'Player ' + winner + ' wins!', {fontSize: '40px', fill: color});
+    buttonText.text = 'Reset';
+};
+
+Game.reset = function(){
+  winnerMsg.destroy();
+  time = 60;
+  timer.text = 'Time: ' + time;
+  buttonText.text = 'Play';
+  // reset scores to 0
+  for (id in Game.playerScore){
+    Game.playerScore[id].text = 0;
+  }
+  //destroy all stars
+  for (id in Game.starMap){
+    Game.starMap[id].destroy();
+    delete Game.starMap[id];
+  }
+};
+
+Game.spectate = function(){
+  spectator = true;
+  game.add.text(400, 0,  'Spectator Mode', {fontSize: '30px', fill: '#FFF '});
+};
+
 function createStar(){
+  time--;
+  timer.text = 'Time: ' + time;
+  if (time === 0){
+    Client.endGame(scores());
+  }
+  Client.dispatchStar();
   Client.dispatchStar();
 }
 function collectStar(player, star){
@@ -210,6 +254,19 @@ function collectStar(player, star){
 function toggleGame(){
   Client.toggleGame();
 }
+function scores(){
+  let maxScore = 0;
+  let winner;
+  for (id in Game.playerScore){
+    let score = Number(Game.playerScore[id].text);
+    if (score > maxScore) {
+      maxScore = score;
+      winner = id;
+    }
+  }
+  return winner;
+}
+
 
 // function playerCollision(p1, p2){
 //   let xdiff = p2.position.x - p1.position.x;
